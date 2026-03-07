@@ -1,0 +1,48 @@
+# Maintainer: Thiago C Silva <librefos@hotmail.com>
+pkgname=dwm-git
+pkgver=r0
+pkgrel=1
+pkgdesc="A dynamic window manager for X"
+arch=('x86_64')
+url="https://dwm.suckless.org/"
+license=('MIT')
+depends=('libx11' 'libxinerama' 'libxft' 'terminus-font')
+makedepends=('git' 'freetype2')
+provides=('dwm')
+conflicts=('dwm')
+source=("git+https://git.suckless.org/dwm")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$srcdir/${pkgname%-git}"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+prepare() {
+  cd "$srcdir/${pkgname%-git}"
+
+  sed -i \
+    -e '/showbar\|borderpx/s/=[[:space:]]*1/= 0/' \
+    -e 's/monospace:size=[0-9][0-9]*/Terminus:size=8/g' \
+    -e 's/{[[:space:]]*"1",[^}]*/{ "1", "2", "3", "4", "5" /' \
+    -e '/TAGKEYS([[:space:]]*XK_[6-9],[[:space:]]*[5-8])/d' \
+    -e '/"Gimp"/d' \
+    -e 's/"Firefox"/"Chromium"/' \
+    -e '/"Chromium"/s/1[[:space:]]*<<[[:space:]]*8/1 << 4/' \
+    -e '/#define MODKEY/s/Mod1Mask/Mod4Mask/' \
+    config.def.h
+
+  sed -i "s|^CFLAGS[[:space:]]*=.*|CFLAGS = ${CFLAGS} -O2 -march=native -mtune=native -std=c99 -pedantic -Wall -Wno-deprecated-declarations \${INCS} \${CPPFLAGS}|" config.mk
+}
+
+build() {
+  cd "$srcdir/${pkgname%-git}"
+  make X11INC=/usr/include/X11 X11LIB=/usr/lib/X11 \
+       FREETYPEINC=/usr/include/freetype2
+}
+
+package() {
+  cd "$srcdir/${pkgname%-git}"
+  make PREFIX=/usr DESTDIR="$pkgdir" install
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
