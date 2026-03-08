@@ -1,6 +1,6 @@
 # Maintainer: Thiago C Silva <librefos@hotmail.com>
 pkgname=dmenu-git
-pkgver=r624.7175c48
+pkgver=r0
 pkgrel=1
 pkgdesc="An efficient dynamic menu for X"
 arch=('x86_64')
