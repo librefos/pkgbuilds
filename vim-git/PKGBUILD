@@ -1,0 +1,58 @@
+# Maintainer: Thiago C Silva <librefos@hotmail.com>
+pkgname=vim-git
+pkgver=r0
+pkgrel=1
+pkgdesc="Vi Improved, a programmer's text editor"
+arch=('x86_64')
+url="https://www.vim.org"
+license=('Vim')
+depends=('gpm' 'acl' 'glibc' 'pcre2' 'zlib' 'libx11' 'libxt' 'python' 'lua')
+makedepends=('git')
+provides=('vim' 'xxd')
+conflicts=('vim' 'vim-minimal' 'xxd')
+source=("git+https://github.com/vim/vim.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$srcdir/${pkgname%-git}"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+prepare() {
+  cd "$srcdir/${pkgname%-git}/src"
+
+  sed -E -i \
+    -e 's|^.*(#define SYS_.*VIMRC_FILE.*").*$|\1|g' \
+    -e 's|^.*(#define VIMRC_FILE.*").*$|\1|g'       \
+    feature.h
+
+  autoconf
+}
+
+build() {
+  cd "$srcdir/${pkgname%-git}"
+
+  ./configure \
+    --prefix=/usr                \
+    --sysconfdir=/etc            \
+    --localstatedir=/var/lib/vim \
+    --with-features=huge         \
+    --enable-gpm                 \
+    --enable-acl                 \
+    --with-x=yes                 \
+    --disable-gui                \
+    --enable-python3interp=yes   \
+    --enable-luainterp=yes       \
+    --enable-terminal            \
+    --enable-cscope              \
+    --with-compiledby="librefos"
+
+  make
+}
+
+package() {
+  cd "$srcdir/${pkgname%-git}"
+  make DESTDIR="$pkgdir" install
+  install -Dm644 runtime/doc/uganda.txt \
+    "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
