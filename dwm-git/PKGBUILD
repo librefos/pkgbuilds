@@ -6,8 +6,8 @@ pkgdesc="A dynamic window manager for X"
 arch=('x86_64')
 url="https://dwm.suckless.org/"
 license=('MIT')
-depends=('libx11' 'libxinerama' 'libxft' 'terminus-font')
-makedepends=('git' 'freetype2')
+depends=('libx11' 'libxinerama' 'libxft' 'freetype2' 'terminus-font')
+makedepends=('git')
 provides=('dwm')
 conflicts=('dwm')
 source=("git+https://git.suckless.org/dwm")
@@ -22,14 +22,14 @@ prepare() {
   cd "$srcdir/${pkgname%-git}"
 
   sed -i \
-    -e '/showbar\|borderpx/s/=[[:space:]]*1/= 0/' \
-    -e 's/monospace:size=[0-9][0-9]*/Terminus:size=8/g' \
+    -e '/showbar\|borderpx/s/=[[:space:]]*[0-9][0-9]*/= 0/'   \
+    -e 's/monospace:size=[0-9][0-9]*/Terminus:size=8/g'       \
     -e 's/{[[:space:]]*"1",[^}]*/{ "1", "2", "3", "4", "5" /' \
-    -e '/TAGKEYS([[:space:]]*XK_[6-9],[[:space:]]*[5-8])/d' \
-    -e '/"Gimp"/d' \
-    -e 's/"Firefox"/"Chromium"/' \
-    -e '/"Chromium"/s/1[[:space:]]*<<[[:space:]]*8/1 << 4/' \
-    -e '/#define MODKEY/s/Mod1Mask/Mod4Mask/' \
+    -e '/TAGKEYS([[:space:]]*XK_[6-9],[[:space:]]*[5-8])/d'   \
+    -e '/"Gimp"/d'                                            \
+    -e 's/"Firefox"/"Chromium"/'                              \
+    -e '/"Chromium"/s/1[[:space:]]*<<[[:space:]]*8/1 << 4/'   \
+    -e '/#define MODKEY/s/Mod1Mask/Mod4Mask/'                 \
     config.def.h
 
   sed -i "s|^CFLAGS[[:space:]]*=.*|CFLAGS = ${CFLAGS} -O2 -march=native -mtune=native -std=c99 -pedantic -Wall -Wno-deprecated-declarations \${INCS} \${CPPFLAGS}|" config.mk
