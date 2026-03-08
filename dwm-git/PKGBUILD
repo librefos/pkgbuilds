@@ -32,13 +32,18 @@ prepare() {
     -e '/#define MODKEY/s/Mod1Mask/Mod4Mask/'                 \
     config.def.h
 
-  sed -i "s|^CFLAGS[[:space:]]*=.*|CFLAGS = ${CFLAGS} -O2 -march=native -mtune=native -std=c99 -pedantic -Wall -Wno-deprecated-declarations \${INCS} \${CPPFLAGS}|" config.mk
+  # add '-march=native -mtune=native' to your /etc/makepkg.conf
+  sed -i \
+    -e '/^X11INC/s|=.*|= /usr/include/X11|' \
+    -e '/^X11LIB/s|=.*|= /usr/lib/X11|' \
+    -e "/^CFLAGS/s/-Os/$CFLAGS /" \
+    -e "/^LDFLAGS/s/=[[:space:]]*/= $LDFLAGS /" \
+    config.mk
 }
 
 build() {
   cd "$srcdir/${pkgname%-git}"
-  make X11INC=/usr/include/X11 X11LIB=/usr/lib/X11 \
-       FREETYPEINC=/usr/include/freetype2
+  make
 }
 
 package() {
