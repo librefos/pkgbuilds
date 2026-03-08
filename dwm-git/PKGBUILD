@@ -32,11 +32,10 @@ prepare() {
     -e '/#define MODKEY/s/Mod1Mask/Mod4Mask/'                 \
     config.def.h
 
-  # add '-march=native -mtune=native' to your /etc/makepkg.conf
   sed -i \
     -e '/^X11INC/s|=.*|= /usr/include/X11|'     \
     -e '/^X11LIB/s|=.*|= /usr/lib/X11|'         \
-    -e "/^CFLAGS/s/-Os/$CFLAGS /"               \
+    -e "/^CFLAGS/s/-Os/$CFLAGS/"                \
     -e "/^LDFLAGS/s/=[[:space:]]*/= $LDFLAGS /" \
     config.mk
 }

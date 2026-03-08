@@ -1,0 +1,43 @@
+# Maintainer: Thiago C Silva <librefos@hotmail.com>
+pkgname=dmenu-git
+pkgver=r624.7175c48
+pkgrel=1
+pkgdesc="An efficient dynamic menu for X"
+arch=('x86_64')
+url="https://tools.suckless.org/dmenu/"
+license=('MIT')
+depends=('libx11' 'libxinerama' 'libxft' 'terminus-font' 'freetype2')
+makedepends=('git')
+provides=('dmenu')
+conflicts=('dmenu')
+source=("git+https://git.suckless.org/dmenu")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$srcdir/${pkgname%-git}"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+prepare() {
+  cd "$srcdir/${pkgname%-git}"
+
+  sed -i 's/monospace:size=10/Terminus:size=8/g' config.def.h
+
+  sed -i \
+    -e '/^X11INC/s|=.*|= /usr/include/X11|'     \
+    -e '/^X11LIB/s|=.*|= /usr/lib/X11|'         \
+    -e "/^CFLAGS/s/-Os/$CFLAGS/"                \
+    -e "/^LDFLAGS/s/=[[:space:]]*/= $LDFLAGS /" \
+    config.mk
+}
+
+build() {
+  cd "$srcdir/${pkgname%-git}"
+  make
+}
+
+package() {
+  cd "$srcdir/${pkgname%-git}"
+  make PREFIX=/usr DESTDIR="$pkgdir" install
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}
