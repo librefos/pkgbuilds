@@ -2,15 +2,15 @@
 pkgname=st-git
 pkgver=r0
 pkgrel=1
-pkgdesc="st is a simple terminal implementation for X"
+pkgdesc='st is a simple terminal implementation for X'
 arch=('x86_64')
-url="https://st.suckless.org/"
+url='https://st.suckless.org/'
 license=('MIT')
 depends=('libx11' 'libxft' 'fontconfig' 'freetype2' 'terminus-font')
 makedepends=('git')
 provides=('st')
 conflicts=('st')
-source=("git+https://git.suckless.org/st")
+source=('git+https://git.suckless.org/st')
 sha256sums=('SKIP')
 
 pkgver() {

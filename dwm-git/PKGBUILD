@@ -2,15 +2,15 @@
 pkgname=dwm-git
 pkgver=r0
 pkgrel=1
-pkgdesc="A dynamic window manager for X"
+pkgdesc='A dynamic window manager for X'
 arch=('x86_64')
-url="https://dwm.suckless.org/"
+url='https://dwm.suckless.org/'
 license=('MIT')
 depends=('libx11' 'libxinerama' 'libxft' 'freetype2' 'terminus-font')
 makedepends=('git')
 provides=('dwm')
 conflicts=('dwm')
-source=("git+https://git.suckless.org/dwm")
+source=('git+https://git.suckless.org/dwm')
 sha256sums=('SKIP')
 
 pkgver() {
@@ -30,6 +30,13 @@ prepare() {
     -e 's/"Firefox"/"Chromium"/'                              \
     -e '/"Chromium"/s/1[[:space:]]*<<[[:space:]]*8/1 << 4/'   \
     -e '/#define MODKEY/s/Mod1Mask/Mod4Mask/'                 \
+    config.def.h
+
+  sed -i \
+    -e '/termcmd\[\]/s/$/\nstatic const char *emacscmd[] = { "emacsclient", "-c", "-a", "emacs", NULL };/' \
+    -e '/emacscmd/s/$/\nstatic const char *vimcmd[] = { "st", "-e", "vim", NULL };/'                       \
+    -e '/XK_p,/s/$/\n\t{ MODKEY, XK_e, spawn, {.v = emacscmd } },/'                                        \
+    -e '/XK_e,/s/$/\n\t{ MODKEY, XK_v, spawn, {.v = vimcmd   } },/'                                        \
     config.def.h
 
   sed -i \

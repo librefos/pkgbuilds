@@ -2,15 +2,15 @@
 pkgname=vim-git
 pkgver=r0
 pkgrel=1
-pkgdesc="Vi Improved, a programmer's text editor"
+pkgdesc='Vi Improved, a programmer's text editor'
 arch=('x86_64')
-url="https://www.vim.org"
+url='https://www.vim.org'
 license=('Vim')
 depends=('gpm' 'acl' 'glibc' 'pcre2' 'zlib' 'libx11' 'libxt' 'python' 'lua')
 makedepends=('git')
 provides=('vim' 'xxd')
 conflicts=('vim' 'vim-minimal' 'xxd')
-source=("git+https://github.com/vim/vim.git")
+source=('git+https://github.com/vim/vim.git')
 sha256sums=('SKIP')
 
 pkgver() {
@@ -45,7 +45,7 @@ build() {
     --enable-luainterp=yes       \
     --enable-terminal            \
     --enable-cscope              \
-    --with-compiledby="librefos"
+    --with-compiledby='librefos'
 
   make
 }

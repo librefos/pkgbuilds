@@ -2,15 +2,15 @@
 pkgname=dmenu-git
 pkgver=r0
 pkgrel=1
-pkgdesc="An efficient dynamic menu for X"
+pkgdesc='An efficient dynamic menu for X'
 arch=('x86_64')
-url="https://tools.suckless.org/dmenu/"
+url='https://tools.suckless.org/dmenu/'
 license=('MIT')
 depends=('libx11' 'libxinerama' 'libxft' 'terminus-font' 'freetype2')
 makedepends=('git')
 provides=('dmenu')
 conflicts=('dmenu')
-source=("git+https://git.suckless.org/dmenu")
+source=('git+https://git.suckless.org/dmenu')
 sha256sums=('SKIP')
 
 pkgver() {
