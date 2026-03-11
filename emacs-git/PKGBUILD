@@ -26,17 +26,17 @@ build() {
   ./autogen.sh
 
   ./configure \
-    --prefix=/usr \
-    --sysconfdir=/etc \
-    --libexecdir=/usr/lib \
-    --localstatedir=/var \
-    --with-x-toolkit=lucid \
-    --with-modules \
+    --prefix=/usr                 \
+    --sysconfdir=/etc             \
+    --libexecdir=/usr/lib         \
+    --localstatedir=/var          \
+    --with-x-toolkit=lucid        \
+    --with-modules                \
     --with-native-compilation=aot \
-    --with-harfbuzz \
-    --with-tree-sitter \
-    --with-json \
-    --with-mailutils \
+    --with-harfbuzz               \
+    --with-tree-sitter            \
+    --with-json                   \
+    --with-mailutils              \
     --without-compress-info
 
   make
