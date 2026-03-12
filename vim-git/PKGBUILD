@@ -22,7 +22,7 @@ pkgver() {
 prepare() {
   cd "$srcdir/${pkgname%-git}/src"
 
-  sed -i \
+  sed -E -i \
     -e 's|^.*(#define SYS_.*VIMRC_FILE.*").*$|\1|g' \
     -e 's|^.*(#define VIMRC_FILE.*").*$|\1|g'       \
     feature.h
