@@ -1,0 +1,123 @@
+Este repositório contém scripts de construção (PKGBUILDs) personalizados
+para o Arch Linux.  Eles automatizam a compilação de ferramentas base do
+sistema a partir do código-fonte, aplicando modificações estruturais
+para otimização e integração com um ambiente X11 minimalista.
+
+--- Modificações e Justificativas --------------------------------------
+
+dmenu-git:
+
+  O arquivo config.mk é modificado para respeitar as variáveis de
+  ambiente do sistema ($CFLAGS e $LDFLAGS) em vez de usar os valores
+  embutidos no projeto upstream.  Isso garante que as otimizações de
+  pacote globais do Arch Linux sejam aplicadas durante a compilação.
+  Os caminhos de inclusão da biblioteca X11 também são corrigidos para
+  /usr/include/X11 e /usr/lib/X11, evitando falhas de ligação.
+
+dwm-git:
+
+  A tecla modificadora principal (MODKEY) é alterada de Mod1Mask (Alt)
+  para Mod4Mask (Super), liberando a tecla Alt para atalhos nativos em
+  aplicações como Emacs e navegadores web.  O número de áreas de
+  trabalho (tags) é reduzido de nove para cinco para simplificar o fluxo
+  de navegação, e a regra de janela da classe "Chromium" é mapeada
+  diretamente para a tag 5.  Para reduzir a latência de execução e a
+  dependência de daemons de teclado de terceiros, atalhos para iniciar o
+  emacsclient e o vim encapsulado no st são injetados diretamente no
+  binário durante a compilação.
+
+emacs-git:
+
+  O editor é compilado com a opção --with-x-toolkit=lucid.  O toolkit
+  Lucid é escolhido para ambientes controlados por gerenciadores de
+  janela dinâmicos porque evita vazamentos de memória e falhas graves
+  frequentemente associadas ao GTK+ quando o servidor X é reiniciado ou
+  quando o Emacs roda como um daemon de longa duração.  A compilação
+  nativa antecipada (AOT) é ativada via --with-native-compilation=aot.
+  Isso traduz o Emacs Lisp em código de máquina utilizando libgccjit
+  durante a construção do pacote, reduzindo drasticamente o tempo de
+  inicialização.
+
+st-git:
+
+  Ajustes comportamentais são aplicados via sed no config.def.h.
+  O tempo limite de piscar do cursor (blinktimeout) é definido como zero
+  e o shell padrão é forçado para /bin/bash, garantindo que as variáveis
+  de ambiente interativas sejam carregadas de forma previsível.  Como no
+  dwm, o config.mk é corrigido para integrar-se aos caminhos padrão de
+  bibliotecas do Arch Linux.
+
+vim-git:
+
+  O arquivo feature.h é modificado antes da configuração para remover as
+  macros SYS_VIMRC_FILE e VIMRC_FILE.  Esta alteração proíbe o binário
+  de carregar configurações globais localizadas em /etc/vimrc.  Isso
+  resolve problemas de compatibilidade e garante que o comportamento do
+  editor seja regido exclusivamente pelas configurações presentes no
+  diretório do usuário, evitando que atualizações de pacotes do sistema
+  injetem configurações indesejadas.  O Vim é compilado com --with-x=yes
+  e --disable-gui, ativando a integração direta com a área de
+  transferência do X11 (registros de seleção) sem o custo de empacotar e
+  compilar a interface gráfica autônoma.
+
+
+--- English Version ----------------------------------------------------
+
+This repository contains custom build scripts (PKGBUILDs) for Arch Linux.
+They automate the compilation of base system tools from source code,
+applying structural modifications for optimization and integration with
+a minimal X11 environment.
+
+--- Modifications and Rationale ----------------------------------------
+
+dmenu-git:
+
+  The config.mk file is modified to respect system environment variables
+  ($CFLAGS and $LDFLAGS) instead of using the values hardcoded in the
+  upstream project.  This ensures that global Arch Linux packaging
+  optimizations are applied during compilation.  The X11 library
+  inclusion paths are also corrected to /usr/include/X11 and
+  /usr/lib/X11, preventing linking failures.
+
+dwm-git:
+
+  The primary modifier key (MODKEY) is changed from Mod1Mask (Alt) to
+  Mod4Mask (Super), freeing the Alt key for native shortcuts in
+  applications like Emacs and web browsers.  The number of workspaces
+  (tags) is reduced from nine to five to streamline the navigation flow,
+  and the window rule for the "Chromium" class is mapped directly to
+  tag 5.  To reduce execution latency and reliance on third-party hotkey
+  daemons, shortcuts for launching emacsclient and a st-wrapped vim
+  instance are injected directly into the binary during compilation.
+
+emacs-git:
+
+  The editor is compiled with the --with-x-toolkit=lucid option.  The
+  Lucid toolkit is chosen for environments controlled by dynamic window
+  managers because it avoids memory leaks and severe crashes frequently
+  associated with GTK+ when the X server is restarted or when Emacs runs
+  as a long-lived daemon.  Ahead-of-time (AOT) native compilation is
+  enabled via --with-native-compilation=aot.  This translates Emacs Lisp
+  into machine code using libgccjit during package construction,
+  drastically reducing startup time.
+
+st-git:
+
+  Behavioral adjustments are applied via sed in config.def.h.  The
+  cursor blink timeout (blinktimeout) is set to zero and the default
+  shell is forced to /bin/bash, ensuring that interactive environment
+  variables are loaded predictably.  As in dwm, config.mk is corrected
+  to integrate with standard Arch Linux library paths.
+
+vim-git:
+
+  The feature.h file is modified before configuration to remove the
+  SYS_VIMRC_FILE and VIMRC_FILE macros.  This change forbids the binary
+  from loading global configurations located in /etc/vimrc.  This solves
+  compatibility problems and ensures that the editor's behavior is
+  governed exclusively by the configurations present in the user's
+  directory, preventing system package updates from injecting unwanted
+  configurations.  Vim is compiled with --with-x=yes and --disable-gui,
+  activating direct integration with the X11 clipboard (selection
+  registers) without the cost of packaging and compiling the standalone
+  graphical interface.
