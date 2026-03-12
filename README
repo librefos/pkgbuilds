@@ -3,6 +3,25 @@ para o Arch Linux.  Eles automatizam a compilação de ferramentas base do
 sistema a partir do código-fonte, aplicando modificações estruturais
 para otimização e integração com um ambiente X11 minimalista.
 
+--- Instalação ---------------------------------------------------------
+
+Para compilar e instalar os pacotes localmente:
+
+1. Clone o repositório (preferencialmente em um diretório temporário):
+   $ git clone https://git.sr.ht/~librefos/pkgbuilds.git /tmp/pkgbuilds
+   $ cd /tmp/pkgbuilds
+
+2. Execute o script de instalação (não execute como root):
+   $ ./install.sh
+
+O script detectará automaticamente os pacotes disponíveis e solicitará
+que você informe os nomes dos pacotes que deseja compilar, separados
+por vírgula.  Você também pode automatizar a execução passando os nomes
+diretamente como argumento (ex: `./install.sh dwm-git,st-git`).  Para
+obter uma lista dos pacotes disponíveis para uso em automação, passe o
+parâmetro `--list`.  O script invocará o `makepkg` nativamente, o qual
+solicitará a senha do `sudo` quando necessário para instalar dependências.
+
 --- Modificações e Justificativas --------------------------------------
 
 dmenu-git:
@@ -40,9 +59,9 @@ emacs-git:
 
 st-git:
 
-  Ajustes comportamentais são aplicados via sed no config.def.h.
-  O tempo limite de piscar do cursor (blinktimeout) é definido como zero
-  e o shell padrão é forçado para /bin/bash, garantindo que as variáveis
+  Ajustes comportamentais são aplicados via sed no config.def.h.  O tempo
+  limite de piscar do cursor (blinktimeout) é definido como zero e o
+  shell padrão é forçado para /bin/bash, garantindo que as variáveis
   de ambiente interativas sejam carregadas de forma previsível.  Como no
   dwm, o config.mk é corrigido para integrar-se aos caminhos padrão de
   bibliotecas do Arch Linux.
@@ -60,13 +79,31 @@ vim-git:
   transferência do X11 (registros de seleção) sem o custo de empacotar e
   compilar a interface gráfica autônoma.
 
-
 --- English Version ----------------------------------------------------
 
 This repository contains custom build scripts (PKGBUILDs) for Arch Linux.
 They automate the compilation of base system tools from source code,
 applying structural modifications for optimization and integration with
 a minimal X11 environment.
+
+--- Installation -------------------------------------------------------
+
+To build and install the packages locally:
+
+1. Clone the repository (preferably into a temporary directory):
+   $ git clone https://git.sr.ht/~librefos/pkgbuilds.git /tmp/pkgbuilds
+   $ cd /tmp/pkgbuilds
+
+2. Execute the installation script (do not run as root):
+   $ ./install.sh
+
+The script will automatically detect available packages and prompt you
+to provide the names of the packages to build, separated by commas.  You
+can also automate execution by passing the names directly as an argument
+(e.g., `./install.sh dwm-git,st-git`).  To get a parseable list of
+available packages for use in scripts, pass the `--list` flag.  The
+script will natively invoke `makepkg`, which will prompt for your `sudo`
+password when dependency resolution or installation is required.
 
 --- Modifications and Rationale ----------------------------------------
 

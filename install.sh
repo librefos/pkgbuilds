@@ -27,7 +27,6 @@ info()  { printf "${GREEN}[INFO]${NC} %b\n"  "$1" >&2; }
 warn()  { printf "${YELLOW}[WARN]${NC} %b\n" "$1" >&2; }
 error() { printf "${RED}[ERROR]${NC} %b\n"   "$1" >&2; exit 1; }
 
-# Parse a comma-separated string of 1-based indices against a reference.
 parse_selection()
 {
   local choices_string="$1"
@@ -38,18 +37,17 @@ parse_selection()
   for choice_token in "${tokens[@]}"; do
     choice_token="${choice_token// /}"
 
-    local is_positive_integer=false
-    if [[ "$choice_token" =~ ^[0-9]+$ ]]; then
-      is_positive_integer=true
-    fi
+    local is_valid_choice=false
+    local valid_item
+    for valid_item in "${reference_array[@]}"; do
+      if [[ "$choice_token" == "$valid_item" ]]; then
+        is_valid_choice=true
+        break
+      fi
+    done
 
-    local is_within_bounds=false
-    if (( choice_token > 0 && choice_token <= ${#reference_array[@]} )); then
-      is_within_bounds=true
-    fi
-
-    if $is_positive_integer && $is_within_bounds; then
-      printf '%s\n' "${reference_array[$((choice_token-1))]}"
+    if $is_valid_choice; then
+      printf '%s\n' "$choice_token"
     else
       warn "Invalid selection ignored: $choice_token"
     fi
@@ -73,18 +71,24 @@ done
 
 [[ ${#packages[@]} -eq 0 ]] && error 'No PKGBUILDs found.'
 
-printf 'Available packages:\n'
-for i in "${!packages[@]}"; do
-  printf '[%d] %s\n' "$((i+1))" "${packages[i]}"
-done
+readonly comma_separated_list="$(IFS=','; printf '%s' "${packages[*]}")"
 
-printf 'Enter numbers to build (comma-separated) ' >/dev/tty
-printf 'or press Enter to skip all: ' >/dev/tty
-read -r user_choices </dev/tty
+if [[ "${1:-}" == "--list" ]]; then
+  printf '%s\n' "$comma_separated_list"
+  exit 0
+fi
 
-mapfile -t selected_packages < <(
-  parse_selection "$user_choices" packages
-)
+if [[ $# -eq 1 ]]; then
+  user_choices="$1"
+  info "Using provided selection: $user_choices"
+else
+  printf 'Available packages: %s\n' "$comma_separated_list"
+  printf 'Enter names to build (comma-separated) ' >/dev/tty
+  printf 'or press Enter to skip all: ' >/dev/tty
+  read -r user_choices </dev/tty
+fi
+
+mapfile -t selected_packages < <(parse_selection "$user_choices" packages)
 
 if [[ ${#selected_packages[@]} -eq 0 ]]; then
   info 'No packages selected. Exiting.'
@@ -101,7 +105,6 @@ for package_name in "${selected_packages[@]}"; do
   fi
 
   info "Building and installing $package_name..."
-
   (cd "$package_dir" && makepkg -si --noconfirm)
 done
 
