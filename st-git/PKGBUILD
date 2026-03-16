@@ -10,8 +10,9 @@ depends=('libx11' 'libxft' 'fontconfig' 'freetype2' 'terminus-font')
 makedepends=('git')
 provides=('st')
 conflicts=('st')
-source=('git+https://git.suckless.org/st')
-sha256sums=('SKIP')
+source=('git+https://git.suckless.org/st'
+        'https://st.suckless.org/patches/anysize/st-expected-anysize-0.9.diff')
+sha256sums=('SKIP' 'SKIP')
 
 pkgver() {
   cd "$srcdir/${pkgname%-git}"
@@ -35,6 +36,8 @@ prepare() {
     -e '/^X11INC/s|=.*|= /usr/include/X11|' \
     -e '/^X11LIB/s|=.*|= /usr/lib/X11|'     \
     config.mk
+
+  patch -p1 < '../st-expected-anysize-0.9.diff'
 }
 
 build() {
