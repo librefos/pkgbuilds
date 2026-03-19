@@ -22,12 +22,12 @@ prepare() {
   cd "$srcdir/${pkgname%-git}"
 
   sed -i \
-    -e '/showbar\|borderpx/s/=[[:space:]]*[0-9][0-9]*/= 0/'    \
-    -e 's/monospace:size=[0-9][0-9]*/Terminus:size=8/g'        \
-    -e 's/{[[:space:]]*"1",[^}]*/{ "1", "2", "3", "4", "5" /'  \
-    -e '/TAGKEYS([[:space:]]*XK_[6-9],[[:space:]]*[5-8])/d'    \
-    -e '/rules\[\] = {/,/};/c\static const Rule rules[] = {};' \
-    -e '/#define MODKEY/s/Mod1Mask/Mod4Mask/'                  \
+    -e '/showbar\|borderpx/s/=[[:space:]]*[0-9][0-9]*/= 0/'          \
+    -e 's/monospace:size=[0-9][0-9]*/Terminus:size=8/g'              \
+    -e 's/{[[:space:]]*"1",[^}]*/{ "1", "2", "3", "4", "5" /'        \
+    -e '/TAGKEYS([[:space:]]*XK_[6-9],[[:space:]]*[5-8])/d'          \
+    -e '/rules\[\] = {/,/};/c\static const Rule rules[1] = { {0} };' \
+    -e '/#define MODKEY/s/Mod1Mask/Mod4Mask/'                        \
     config.def.h
 
   sed -i \
