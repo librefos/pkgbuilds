@@ -26,9 +26,7 @@ prepare() {
     -e 's/monospace:size=[0-9][0-9]*/Terminus:size=8/g'       \
     -e 's/{[[:space:]]*"1",[^}]*/{ "1", "2", "3", "4", "5" /' \
     -e '/TAGKEYS([[:space:]]*XK_[6-9],[[:space:]]*[5-8])/d'   \
-    -e '/"Gimp"/d'                                            \
-    -e 's/"Firefox"/"Chromium"/'                              \
-    -e '/"Chromium"/s/1[[:space:]]*<<[[:space:]]*8/1 << 4/'   \
+    -e '/rules\[\] = {/,/};/c\rules[] = {};'                  \
     -e '/#define MODKEY/s/Mod1Mask/Mod4Mask/'                 \
     config.def.h
 
