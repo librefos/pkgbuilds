@@ -12,6 +12,9 @@ depends=('alsa-lib' 'giflib' 'gnutls' 'harfbuzz' 'jansson' 'lcms2'
 makedepends=('git' 'texinfo' 'mailutils')
 provides=("emacs=${pkgver}")
 conflicts=('emacs')
+# NOTE: The Savannah Git server may occasionally be slow or unavailable.
+# The official GitHub mirror (https://github.com/emacs-mirror/emacs) can
+# be used as an alternative source if necessary.
 source=('git+https://git.savannah.gnu.org/git/emacs.git')
 sha256sums=('SKIP')
 
