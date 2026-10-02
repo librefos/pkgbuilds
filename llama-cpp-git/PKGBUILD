@@ -1,0 +1,47 @@
+# Maintainer: Thiago C. Silva <librefos@newliber.com>
+pkgname=llama-cpp-git
+pkgver=r0
+pkgrel=1
+pkgdesc="Inference of Meta's LLaMA and many other LLMs in C/C++ (Vulkan backend; speculative decoding incl. MTP)"
+arch=('x86_64')
+url='https://github.com/ggml-org/llama.cpp'
+license=('MIT')
+depends=('glibc' 'vulkan-icd-loader' 'vulkan-radeon' 'openssl')
+makedepends=('git' 'cmake' 'ninja' 'vulkan-headers' 'spirv-headers' 'shaderc')
+provides=('llama-cpp')
+conflicts=('llama-cpp')
+source=("${pkgname}::git+https://github.com/ggml-org/llama.cpp.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$pkgname"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" \
+                  "$(git rev-parse --short HEAD)"
+}
+
+build() {
+  cd "$pkgname"
+
+  cmake -B build -G Ninja           \
+    -DCMAKE_INSTALL_PREFIX=/usr     \
+    -DCMAKE_BUILD_TYPE=Release      \
+    -DGGML_VULKAN=ON                \
+    -DGGML_NATIVE=ON                \
+    -DGGML_LTO=ON                   \
+    -DBUILD_SHARED_LIBS=ON          \
+    -DLLAMA_BUILD_TOOLS=ON          \
+    -DLLAMA_BUILD_SERVER=ON         \
+    -DLLAMA_BUILD_TESTS=OFF         \
+    -DLLAMA_BUILD_EXAMPLES=OFF      \
+    -DLLAMA_OPENSSL=ON              \
+    -DLLAMA_BUILD_UI=ON             \
+    -DLLAMA_USE_PREBUILT_UI=ON
+
+  cmake --build build
+}
+
+package() {
+  cd "$pkgname"
+  DESTDIR="$pkgdir" cmake --install build
+  install -Dm644 LICENSE "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

@@ -1,0 +1,54 @@
+# Maintainer: Thiago C. Silva <librefos@newliber.com>
+pkgname=emacs-git
+pkgver=r0
+pkgrel=1
+pkgdesc='GNU Emacs (Git version, optimized for minimal X11)'
+arch=('x86_64')
+url='https://www.gnu.org/software/emacs/'
+license=('GPL-3.0-or-later')
+depends=('alsa-lib' 'giflib' 'gnutls' 'harfbuzz' 'jansson' 'lcms2'
+         'libx11' 'libxml2' 'libxpm' 'm17n-lib' 'sqlite' 'tree-sitter'
+         'libgccjit' 'libxaw')
+makedepends=('git' 'texinfo' 'mailutils')
+provides=("emacs=${pkgver}")
+conflicts=('emacs')
+# NOTE: The Savannah Git server may occasionally be slow or unavailable.
+# The official GitHub mirror (https://github.com/emacs-mirror/emacs) can
+# be used as an alternative source if necessary.
+source=("${pkgname}::git+https://git.savannah.gnu.org/git/emacs.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$pkgname"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+  cd "$pkgname"
+
+  ./autogen.sh
+
+  ./configure \
+    --prefix=/usr                 \
+    --sysconfdir=/etc             \
+    --libexecdir=/usr/lib         \
+    --localstatedir=/var          \
+    --with-x-toolkit=lucid        \
+    --with-modules                \
+    --with-native-compilation=aot \
+    --with-harfbuzz               \
+    --with-tree-sitter            \
+    --with-json                   \
+    --with-mailutils              \
+    --without-compress-info
+
+  make
+}
+
+package() {
+  cd "$pkgname"
+
+  make DESTDIR="$pkgdir" install
+  rm -rf "$pkgdir/var/games"
+  chown -R root:root "$pkgdir/"
+}

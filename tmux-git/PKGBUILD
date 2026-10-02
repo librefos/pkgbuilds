@@ -1,0 +1,36 @@
+# Maintainer: Thiago C. Silva <librefos@newliber.com>
+pkgname=tmux-git
+pkgver=r0
+pkgrel=1
+pkgdesc="A terminal multiplexer"
+arch=('x86_64')
+url='https://github.com/tmux/tmux'
+license=('ISC')
+depends=('ncurses' 'libevent' 'glibc')
+makedepends=('git' 'automake' 'autoconf' 'bison' 'pkgconf')
+provides=('tmux')
+conflicts=('tmux')
+source=("${pkgname}::git+https://github.com/tmux/tmux.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$pkgname"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+prepare() {
+  cd "$pkgname"
+  sh autogen.sh
+}
+
+build() {
+  cd "$pkgname"
+  ./configure --prefix=/usr --sysconfdir=/etc
+  make
+}
+
+package() {
+  cd "$pkgname"
+  make DESTDIR="$pkgdir" install
+  install -Dm644 COPYING "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

@@ -1,0 +1,30 @@
+# Maintainer: Thiago C. Silva <librefos@newliber.com>
+pkgname=irssi-git
+pkgver=r0
+pkgrel=1
+pkgdesc='A modular text-mode IRC client with Perl scripting'
+arch=('x86_64')
+url='https://irssi.org/'
+license=('GPL-2.0-or-later')
+depends=('glib2' 'ncurses' 'openssl' 'perl')
+makedepends=('git' 'meson' 'ninja')
+provides=('irssi')
+conflicts=('irssi')
+source=("${pkgname}::git+https://github.com/irssi/irssi.git")
+sha256sums=('SKIP')
+
+pkgver() {
+  cd "$pkgname"
+  git describe --long --tags | sed 's/^v//;s/\([^-]*-g\)/r\1/;s/-/./g'
+}
+
+build() {
+  cd "$pkgname"
+  arch-meson . build -Dwith-perl=yes -Dwith-proxy=yes -Dwith-bot=yes
+  meson compile -C build
+}
+
+package() {
+  cd "$pkgname"
+  meson install -C build --destdir "$pkgdir"
+}

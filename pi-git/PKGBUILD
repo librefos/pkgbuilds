@@ -1,0 +1,88 @@
+# Maintainer: Thiago C. Silva <librefos@newliber.com>
+pkgname=pi-git
+_pkgname=coding-agent
+pkgver=r0
+pkgrel=1
+pkgdesc='A terminal-based coding agent compiled from source into a standalone binary'
+arch=('x86_64')
+url='https://github.com/earendil-works/pi'
+license=('MIT')
+# glibc + gcc-libs: bun-compiled binaries dynamically link libc and usually libstdc++.
+# Verify after first build with:  ldd /opt/pi-git/pi   and trim/extend accordingly.
+depends=('glibc' 'gcc-libs')
+makedepends=('git' 'npm' 'bun')
+provides=('pi-coding-agent' 'pi')
+conflicts=('pi-coding-agent' 'pi')
+source=("${pkgname}::git+https://github.com/earendil-works/pi.git")
+sha256sums=('SKIP')
+# !strip is REQUIRED: stripping corrupts the bun-compiled binary's embedded bundle.
+options=('!strip')
+
+pkgver() {
+  cd "$pkgname"
+  printf "r%s.%s" "$(git rev-list --count HEAD)" "$(git rev-parse --short HEAD)"
+}
+
+# NOTE: The old prepare() patched a dynamic require('proxy-from-env') in
+# packages/ai/src/utils/node-http-proxy.ts so Bun could bundle it. Upstream has
+# since inlined its own getProxyForUrl() and dropped that dependency, so the
+# patch is dead code and has been removed. If a future refactor reintroduces a
+# dynamic require that breaks `bun build --compile`, reinstate a guarded patch.
+
+build() {
+  cd "$pkgname"
+  # HUSKY=0: skip the root `prepare: husky` git-hook install during `npm install`.
+  export HUSKY=0
+  # Installs all workspace deps AND runs lifecycle scripts (esbuild, tsgo/native-
+  # preview, photon-node) that fetch platform binaries the build needs. Do NOT add
+  # --ignore-scripts here or the binary build will fail.
+  npm install
+
+  # build:binary builds the six workspace deps it needs (tui, telemetry, ai, agent,
+  # protocol, client), runs the coding-agent tsgo build, then `bun build --compile`
+  # emits the standalone ./dist/pi and copies runtime assets beside it.
+  cd "packages/$_pkgname"
+  npm run build:binary
+}
+
+check() {
+  # Fail loudly at build time if upstream shifted a step or asset path, instead of
+  # shipping a broken package that only errors at first launch. Skippable with
+  # `makepkg --nocheck`, so packaging invariants still live in package() too.
+  cd "$pkgname/packages/$_pkgname"
+
+  # 1. The standalone binary exists, is executable, and isn't a truncated stub.
+  #    (Real bun-compiled binaries are tens of MB; >1MB rules out an empty outfile.)
+  [ -f dist/pi ] || { echo 'check: dist/pi missing — bun --compile did not produce a binary'; return 1; }
+  [ -x dist/pi ] || { echo 'check: dist/pi is not executable';                                 return 1; }
+  local size; size=$(stat -c%s dist/pi)
+  [ "$size" -gt 1000000 ] || { echo "check: dist/pi is only ${size} bytes — build looks broken"; return 1; }
+
+  # 2. The on-disk runtime asset the binary loads (photon image lib).
+  [ -f dist/photon_rs_bg.wasm ] || { echo 'check: dist/photon_rs_bg.wasm missing from dist/'; return 1; }
+
+  # 3. Smoke test: the binary actually runs and resolves its embedded bundle + assets.
+  #    timeout guards against a hang; --version is documented and offline-safe.
+  timeout 30 ./dist/pi --version || { echo "check: 'pi --version' failed — binary or assets broken"; return 1; }
+
+  echo '==> check: dist/pi present, sized, asset in place, and runs. OK.'
+}
+
+package() {
+  install -d "$pkgdir/opt/$pkgname"
+  # -d preserves symlinks, --no-preserve=ownership keeps fakeroot happy.
+  # dist/ contains the `pi` binary plus its on-disk runtime assets (photon wasm,
+  # docs/, examples/, themes) — copy the whole tree so the binary can find them.
+  cp -dr --no-preserve=ownership \
+    "$srcdir/$pkgname/packages/$_pkgname/dist/"* "$pkgdir/opt/$pkgname/"
+
+  install -d "$pkgdir/usr/bin"
+  # Bun resolves process.execPath through symlinks (like Node), so assets still
+  # resolve to /opt/$pkgname. If a build ever breaks on that, replace this symlink
+  # with a wrapper: printf '#!/bin/sh\nexec /opt/%s/pi "$@"\n' "$pkgname"
+  ln -s "../../opt/$pkgname/pi" "$pkgdir/usr/bin/pi"
+
+  install -Dm644 "$srcdir/$pkgname/packages/$_pkgname/README.md"    "$pkgdir/usr/share/doc/$pkgname/README.md"
+  install -Dm644 "$srcdir/$pkgname/packages/$_pkgname/CHANGELOG.md" "$pkgdir/usr/share/doc/$pkgname/CHANGELOG.md"
+  install -Dm644 "$srcdir/$pkgname/LICENSE"                         "$pkgdir/usr/share/licenses/$pkgname/LICENSE"
+}

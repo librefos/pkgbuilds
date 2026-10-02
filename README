@@ -1,0 +1,177 @@
+Este repositório contém scripts de construção (PKGBUILDs) personalizados
+para o Arch Linux. Eles automatizam a compilação de ferramentas base do
+sistema a partir do código-fonte, aplicando modificações estruturais
+para otimização e integração com um ambiente X11 minimalista.
+
+--- Instalação ---------------------------------------------------------
+
+Para compilar e instalar os pacotes localmente:
+
+1. Clone o repositório (preferencialmente em um diretório temporário):
+   $ git clone https://github.com/librefos/pkgbuilds.git /tmp/pkgbuilds
+   $ cd /tmp/pkgbuilds
+
+2. Execute o script de instalação (não execute como root):
+   $ ./install.sh
+
+O script detectará automaticamente os pacotes disponíveis e solicitará
+que você informe os nomes dos pacotes que deseja compilar, separados
+por vírgula. Você também pode automatizar a execução passando os nomes
+diretamente como argumento (ex: ./install.sh dwm-git,st-git,irssi-git). Para
+obter uma lista dos pacotes disponíveis para uso em automação, passe o
+parâmetro --list. O script invocará o makepkg nativamente, o qual
+solicitará a senha do sudo quando necessário para instalar dependências.
+
+--- Modificações e Justificativas --------------------------------------
+
+dmenu-git:
+  O arquivo config.mk é modificado para respeitar as variáveis de
+  ambiente do sistema ($CFLAGS e $LDFLAGS) em vez de usar os valores
+  embutidos no projeto upstream. Isso garante que as otimizações de
+  pacote globais do Arch Linux sejam aplicadas durante a compilação.
+  A fonte padrão é alterada para Terminus tamanho 8.
+
+dwm-git:
+  A barra superior (showbar) e as bordas das janelas (borderpx)
+  são desativadas por padrão no config.def.h. A fonte é configurada
+  para Terminus tamanho 8 e as tags (áreas de trabalho) são
+  reduzidas de 9 para 5. O terminal padrão (termcmd) passa do st
+  para o Ghostty, que vira dependência do pacote. O MODKEY é
+  alterado para a tecla Super (Windows). A integração com as
+  bibliotecas X11 do Arch Linux é corrigida no config.mk.
+
+emacs-git:
+  Compilado sem suporte a dbus (--without-dbus) e interface gráfica
+  padrão, mas mantendo suporte X11 básico via opção
+  --with-x-toolkit=lucid. O toolkit Lucid é escolhido para ambientes
+  controlados por gerenciadores de janelas dinâmicos porque evita
+  vazamentos de memória e falhas graves frequentemente associadas ao
+  GTK+ quando o servidor X é reiniciado ou quando o Emacs roda como
+  um daemon de longa duração. A compilação nativa (AOT) é ativada
+  via --with-native-compilation=aot, traduzindo Emacs Lisp para
+  código de máquina usando libgccjit durante a construção do pacote,
+  reduzindo drasticamente o tempo de inicialização.
+
+irssi-git:
+  Compilado a partir do código-fonte (Git) utilizando o sistema de
+  build Meson. A configuração ativa explicitamente o suporte a scripts
+  em Perl (-Dwith-perl=yes), suporte a proxy (-Dwith-proxy=yes) e
+  funcionalidades de bot (-Dwith-bot=yes), garantindo um cliente IRC
+  robusto e extensível para o ambiente de terminal.
+
+st-git:
+  Ajustes comportamentais são aplicados via sed no config.def.h. O
+  tempo limite de piscar do cursor (blinktimeout) é definido como
+  zero e o shell padrão é forçado para /bin/bash, garantindo que
+  variáveis de ambiente interativas sejam carregadas de forma
+  previsível. Como no dwm, o config.mk é corrigido para integrar-se
+  aos caminhos de biblioteca padrão do Arch Linux.
+
+vim-git:
+  O arquivo feature.h é modificado antes da configuração para remover as
+  macros SYS_VIMRC_FILE e VIMRC_FILE. Esta mudança proíbe o binário
+  de carregar configurações globais localizadas em /etc/vimrc. Isso resolve
+  problemas de compatibilidade e garante que o comportamento do editor
+  seja governado exclusivamente pelas configurações presentes no
+  diretório do usuário, evitando que atualizações de pacotes do sistema
+  injetem configurações indesejadas. O Vim é compilado com --with-x=yes
+  e --disable-gui, ativando a integração direta com a área de transferência
+  do X11 (registradores de seleção) sem o custo de empacotar e compilar
+  a interface gráfica autônoma.
+
+llama-cpp-git:
+  O PKGBUILD é configurado com -DGGML_VULKAN=ON para habilitar o
+  backend Vulkan, permitindo a aceleração por hardware na GPU integrada
+  AMD Radeon Vega 8 (via driver RADV). As flags -DGGML_CPU_AMD64=ON e
+  -DGGML_NATIVE=ON são utilizadas para otimizar agressivamente a
+  compilação para a arquitetura exata do processador (Ryzen 7 5700G /
+  znver3), ativando instruções avançadas como AVX2, FMA e F16C, o que
+  maximiza a taxa de tokens por segundo durante a inferência puramente
+  em CPU. O sistema de build utiliza ninja com o gerador -G Ninja para
+  acelerar significativamente o tempo de compilação em comparação com o
+  make padrão. A contagem de threads paralelas (-j) foi removida
+  intencionalmente para respeitar a variável global MAKEFLAGS definida
+  no makepkg.conf, garantindo conformidade com os padrões do Arch
+  Linux. Além disso, -DBUILD_SHARED_LIBS=ON gera bibliotecas
+  compartilhadas, reduzindo o tamanho final dos binários e facilitando
+  o uso por outras aplicações.
+
+
+--- English ------------------------------------------------------------
+
+This repository contains custom build scripts (PKGBUILDs) for Arch Linux.
+They automate the compilation of core system tools from source, applying
+structural modifications for optimization and integration with a
+minimalist X11 environment.
+
+--- Installation -------------------------------------------------------
+
+To compile and install the packages locally:
+
+1. Clone the repository (preferably in a temporary directory):
+   $ git clone https://github.com/librefos/pkgbuilds.git /tmp/pkgbuilds
+   $ cd /tmp/pkgbuilds
+
+2. Execute the installation script (do not run as root):
+   $ ./install.sh
+
+The script will automatically detect available packages and prompt you
+to provide the names of the packages you wish to compile, separated
+by commas. You can also automate execution by passing the names
+directly as an argument (e.g., ./install.sh dwm-git,st-git,irssi-git). To
+get a parseable list of available packages for use in automation, pass the
+--list parameter. The script will natively invoke makepkg, which
+will request your sudo password when necessary to install dependencies.
+
+--- Modifications and Justifications -----------------------------------
+
+dmenu-git:
+  The config.mk file is modified to respect system environment variables
+  ($CFLAGS and $LDFLAGS) instead of using the hardcoded values in the
+  upstream project. This ensures that Arch Linux global package optimizations
+  are applied during compilation. The default font is changed to Terminus size 8.
+
+dwm-git:
+  The top bar (showbar) and window borders (borderpx) are disabled by
+  default in config.def.h. The font is set to Terminus size 8 and the
+  tags (workspaces) are reduced from 9 to 5. The default terminal
+  (termcmd) is switched from st to Ghostty, which becomes a dependency
+  of the package. The MODKEY is changed to the Super (Windows) key.
+  Integration with Arch Linux X11 libraries is fixed in config.mk.
+
+emacs-git:
+  Compiled without dbus support (--without-dbus) and without standard
+  graphical interface, but maintaining basic X11 support via the
+  --with-x-toolkit=lucid option. The Lucid toolkit is chosen for
+  environments controlled by dynamic window managers because it avoids
+  memory leaks and severe crashes frequently associated with GTK+ when
+  the X server is restarted or when Emacs runs as a long-lived daemon.
+  Ahead-of-time (AOT) native compilation is enabled via
+  --with-native-compilation=aot, translating Emacs Lisp into machine
+  code using libgccjit during package construction, drastically reducing
+  startup time.
+
+irssi-git:
+  Compiled from source (Git) using the Meson build system. The configuration
+  explicitly enables Perl scripting support (-Dwith-perl=yes), proxy support
+  (-Dwith-proxy=yes), and bot features (-Dwith-bot=yes), ensuring a robust
+  and extensible IRC client for the terminal environment.
+
+st-git:
+  Behavioral adjustments are applied via sed in config.def.h. The cursor
+  blink timeout (blinktimeout) is set to zero and the default shell is
+  forced to /bin/bash, ensuring that interactive environment variables
+  are loaded predictably. As in dwm, config.mk is corrected to integrate
+  with standard Arch Linux library paths.
+
+vim-git:
+  The feature.h file is modified before configuration to remove the
+  SYS_VIMRC_FILE and VIMRC_FILE macros. This change forbids the binary
+  from loading global configurations located in /etc/vimrc. This solves
+  compatibility problems and ensures that the editor's behavior is
+  governed exclusively by the configurations present in the user's
+  directory, preventing system package updates from injecting unwanted
+  configurations. Vim is compiled with --with-x=yes and --disable-gui,
+  activating direct integration with the X11 clipboard (selection registers)
+  without the cost of packaging and compiling the standalone graphical
+  interface.
