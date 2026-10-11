@@ -6,7 +6,7 @@ pkgdesc='A dynamic window manager for X'
 arch=('x86_64')
 url='https://dwm.suckless.org/'
 license=('MIT')
-depends=('libx11' 'libxinerama' 'libxft' 'freetype2' 'terminus-font' 'ghostty')
+depends=('libx11' 'libxinerama' 'libxft' 'freetype2' 'terminus-font')
 makedepends=('git')
 provides=('dwm')
 conflicts=('dwm')
@@ -28,7 +28,6 @@ prepare() {
     -e '/TAGKEYS([[:space:]]*XK_[6-9],[[:space:]]*[5-8])/d' \
     -e '/rules\[\] = {/,/};/c\static const Rule rules[1] = { {0} };' \
     -e '/#define MODKEY/s/Mod1Mask/Mod4Mask/' \
-    -e '/termcmd\[\]/s/"st"/"ghostty"/' \
     config.def.h
 
   sed -i \
